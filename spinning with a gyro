@@ -1,0 +1,62 @@
+// VEX IQ C++ Project
+#include "vex.h"
+using namespace vex;
+
+//#region config_globals
+vex::brain Brain;
+vex::motor leftlift(vex::PORT1);
+vex::motor claw_(vex::PORT3);
+vex::motor rightlift_(vex::PORT6);
+vex::motor leftmotor_(vex::PORT7);
+vex::gyro  gyro_9(vex::PORT8);
+vex::motor hdrive_(vex::PORT10);
+vex::motor rightmotor(vex::PORT12, true); // Reverse Polarity
+//#endregion config_globals
+
+void display()
+{
+    int i = 0;
+    while(true)// forever loop
+    {
+       Brain.Screen.printLine(1,"gyro:%f", gyro_9.rotation(degrees));
+       
+       Brain.Screen.printLine(2, "It : %i", i++);
+       
+        wait(.3, seconds);
+       
+         Brain.Screen.clearScreen();
+    }
+}
+void leftturn (float degres)
+{
+    while (gyro_9.rotation(degrees)< degres)
+    {
+        leftmotor_.spin(reverse);
+        rightmotor.spin(forward);
+    }
+    leftmotor_.stop();
+    rightmotor.stop();
+        
+}
+
+void rightturn (float degres)
+{
+    while (gyro_9.rotation(degrees)> -degres)
+    {
+        leftmotor_.spin(forward);
+        rightmotor.spin(reverse);
+    }
+    leftmotor_.stop();
+    rightmotor.stop();
+        
+    
+}
+int main(void) {
+    // Start here
+    gyro_9.startCalibration();
+    wait(2,seconds);
+    thread d (display);
+    //leftturn(90);
+    //rightturn(90);
+}
+
