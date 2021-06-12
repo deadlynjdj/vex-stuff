@@ -1,0 +1,88 @@
+// VEX IQ C++ Project
+#include "vex.h"
+using namespace vex;
+
+//#region config_globals
+vex::brain Brain;
+vex::motor liftl(vex::PORT1);
+vex::motor motor_3(vex::PORT3);
+vex::motor liftr(vex::PORT6);
+vex::motor rightmotor(vex::PORT7);
+vex::motor motor_10(vex::PORT10);
+vex::motor left_motor(vex::PORT12, true); // Reverse Polarity
+//#endregion config_globals
+
+    
+float speed = 0;
+void display ()
+{
+    while(true)
+    {
+        Brain.Screen.printLine(1,"left Motor :%f", left_motor.rotation(degrees));
+        
+       Brain.Screen.printLine(2, "Speed : %f", speed);
+        
+        wait (0.3, seconds);
+        
+        Brain.Screen.clearScreen();
+    }
+}
+
+void driveForward(float degs)
+{
+    
+    while(left_motor.rotation(degrees)< degs)
+    {
+        left_motor.spin(forward,100,percent);
+        rightmotor.spin(forward,100, percent);
+    }
+    left_motor.stop();
+    rightmotor.stop();
+}
+
+void pDriveForward(float degs)
+{
+    left_motor.resetRotation();
+    
+    float kp = .54;
+    
+    while(left_motor.rotation(degrees)< degs) 
+    {
+        speed = (degs - left_motor.rotation(degrees)) * kp; //proprtional control
+    
+        
+        if (speed > 100 ) speed = 100; // control speed 
+
+        left_motor.spin(forward, speed ,percent);
+        rightmotor.spin(forward, speed, percent);
+    }
+    left_motor.stop();
+    rightmotor.stop();
+}
+
+void pDrivereverse(float degs)
+{
+    left_motor.resetRotation();
+    
+    int kp=.54;
+    
+    while(left_motor.rotation(degrees) > degs * -1)
+    {
+        speed = (degs + left_motor.rotation(degrees)) * kp;
+        
+        if (speed > 100) speed = 100;
+        
+        left_motor.spin(reverse, speed ,percent);
+        rightmotor.spin(reverse, speed, percent);
+    }
+    left_motor.stop();
+    rightmotor.stop();
+}
+int main(void) {
+    // Start here
+    
+    thread t(display);
+    pDriveForward(100);
+    pDrivereverse(100);
+    Brain.Sound.playWave(soundType::carAlarm2);
+}
